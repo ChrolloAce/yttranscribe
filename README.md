@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Transcriber
+
+A web application that extracts transcripts from YouTube videos.
+
+## Features
+
+- Extract transcripts from YouTube videos by URL
+- Copy transcript to clipboard
+- Download transcript as a text file
+- RESTful API for transcript extraction
+
+## Tech Stack
+
+- Next.js 15
+- TypeScript
+- Tailwind CSS
+- YouTube Transcript API
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/ChrolloAce/yttranscribe.git
+   cd yttranscribe
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+## API Documentation
+
+The application provides a RESTful API that can be used to extract transcripts from YouTube videos.
+
+### Extract Transcript
+
+```
+POST /api/transcript
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Request Body
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```json
+{
+  "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID"
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Response
 
-## Learn More
+Success (200 OK):
+```json
+{
+  "transcript": "The full transcript text from the video..."
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+Error (400 Bad Request):
+```json
+{
+  "error": "Error message"
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Error (404 Not Found):
+```json
+{
+  "error": "No transcript found for this video"
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Error (500 Internal Server Error):
+```json
+{
+  "error": "Failed to fetch transcript"
+}
+```
 
-## Deploy on Vercel
+#### Examples
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Using cURL:
+```bash
+curl -X POST \
+  http://localhost:3000/api/transcript \
+  -H 'Content-Type: application/json' \
+  -d '{"videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Using JavaScript (fetch):
+```javascript
+fetch('http://localhost:3000/api/transcript', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  }),
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+```
+
+## License
+
+MIT
