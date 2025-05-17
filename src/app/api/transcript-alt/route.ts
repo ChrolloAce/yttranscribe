@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { YoutubeTranscript } from 'youtube-transcript';
 
 export async function POST(request: Request) {
   try {
@@ -37,34 +36,36 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('Fetching transcript for video ID:', videoId);
+    console.log('Fetching transcript for video ID (alternative method):', videoId);
     
     try {
-      // Fetch transcript using youtube-transcript
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      // Using a publicly available API proxy for YouTube transcripts
+      const response = await fetch(`https://yt-transcript-api.vercel.app/api?id=${videoId}`);
       
-      if (!transcript || transcript.length === 0) {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`API responded with ${response.status}: ${JSON.stringify(errorData)}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.transcript) {
         return NextResponse.json(
           { error: 'No transcript found for this video' },
           { status: 404 }
         );
       }
 
-      // Format transcript
-      const formattedTranscript = transcript
-        .map((item) => item.text)
-        .join(' ');
-
-      return NextResponse.json({ transcript: formattedTranscript });
+      return NextResponse.json({ transcript: data.transcript });
     } catch (transcriptError) {
-      console.error('Error fetching YouTube transcript:', transcriptError);
+      console.error('Error in alternative transcript fetch:', transcriptError);
       return NextResponse.json(
-        { error: 'Failed to fetch transcript from YouTube', details: String(transcriptError) },
+        { error: 'Failed to fetch transcript from alternative source', details: String(transcriptError) },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('General error in transcript API:', error);
+    console.error('General error in alternative transcript API:', error);
     return NextResponse.json(
       { error: 'Failed to fetch transcript', details: String(error) },
       { status: 500 }

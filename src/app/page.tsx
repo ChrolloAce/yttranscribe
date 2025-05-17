@@ -7,10 +7,27 @@ export default function YouTubeTranscriber() {
   const [transcript, setTranscript] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [apiSource, setApiSource] = useState<"primary" | "alternative">("primary");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVideoUrl(e.target.value);
     setError("");
+  };
+
+  const fetchTranscriptFromApi = async (apiEndpoint: string, videoUrl: string) => {
+    const response = await fetch(apiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoUrl })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || errorData.details || 'Failed to fetch transcript');
+    }
+    
+    const data = await response.json();
+    return data.transcript;
   };
 
   const getTranscript = async () => {
@@ -23,19 +40,19 @@ export default function YouTubeTranscriber() {
       setIsLoading(true);
       setError("");
       
-      const response = await fetch('/api/transcript', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoUrl })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch transcript');
+      try {
+        // Try the primary API first
+        setApiSource("primary");
+        const transcriptText = await fetchTranscriptFromApi('/api/transcript', videoUrl);
+        setTranscript(transcriptText);
+      } catch (primaryError) {
+        console.error("Primary API failed:", primaryError);
+        
+        // If the primary API fails, try the alternative API
+        setApiSource("alternative");
+        const transcriptText = await fetchTranscriptFromApi('/api/transcript-alt', videoUrl);
+        setTranscript(transcriptText);
       }
-      
-      const data = await response.json();
-      setTranscript(data.transcript);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to get transcript. Please check the URL and try again.");
       console.error(err);
@@ -102,7 +119,10 @@ export default function YouTubeTranscriber() {
             <h2 className="text-lg font-medium text-gray-900 mb-4">Transcript</h2>
             <div className="bg-gray-50 p-4 rounded-md h-64 overflow-y-auto">
               {transcript ? (
-                <p className="text-gray-800 whitespace-pre-line">{transcript}</p>
+                <>
+                  <p className="text-xs text-gray-500 mb-2">Source: {apiSource === "primary" ? "YouTube Transcript API" : "Alternative API"}</p>
+                  <p className="text-gray-800 whitespace-pre-line">{transcript}</p>
+                </>
               ) : (
                 <p className="text-gray-500 text-sm italic">
                   The transcript will appear here after you submit a valid YouTube URL.
