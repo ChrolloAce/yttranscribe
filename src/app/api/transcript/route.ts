@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       } else if (url.hostname.includes('youtube.com')) {
         videoId = url.searchParams.get('v') || '';
       }
-    } catch (_e) {
+    } catch {
       // If URL parsing fails, check if the input is already a video ID
       if (/^[a-zA-Z0-9_-]{11}$/.test(videoUrl)) {
         videoId = videoUrl;
