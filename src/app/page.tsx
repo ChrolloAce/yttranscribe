@@ -36,8 +36,8 @@ export default function YouTubeTranscriber() {
       
       const data = await response.json();
       setTranscript(data.transcript);
-    } catch (err: any) {
-      setError(err.message || "Failed to get transcript. Please check the URL and try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to get transcript. Please check the URL and try again.");
       console.error(err);
     } finally {
       setIsLoading(false);
